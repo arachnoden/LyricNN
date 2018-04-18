@@ -106,9 +106,15 @@ public class LyricNN extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    /**
+     * Створює текстове поле для цифр
+     * @param width ширина поля
+     * @return текстове поле
+     */
     public static TextField stvorTFdlCyfry(int width){
         TextField tfK2 = new TextField();
         tfK2.setPrefWidth(width);
+        //перевіряє чи вводяться саме цифри
         tfK2.setOnKeyReleased(pdj ->{
             if(!tfK2.getText().matches("\\d+")){
                 tfK2.setText("0");
@@ -118,6 +124,11 @@ public class LyricNN extends Application {
         return tfK2;
     }
 
+    /**
+     * Тренує нейронну мережу завантажуючи приклади з текстових файлів
+     * @param nn нейронна мережа яку потрібно натренувати
+     * @param lbl мітка яка буде відображати хід тренування
+     */
     public static void trainNetwork(NeuralNetwork nn, Label lbl){
         double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\jar\\Task.txt", 7, 262);
         double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\jar\\Answer.txt", 7, 262);
@@ -126,6 +137,13 @@ public class LyricNN extends Application {
 
         new Thread(nn).start();
     }
+    /**
+     * Завантажує завдання та відповіді з текстових файлів у массив
+     * @param path шлях до файлу
+     * @param rows строк
+     * @param columns колонок
+     * @return массив завдання/відповіді
+     */
     private static double[][] loadArrayFromFile(String path,int rows, int columns) {
         double[][] arr = null;
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -143,6 +161,13 @@ public class LyricNN extends Application {
         }
         return arr;
     }
+    
+    /**
+     * Завантажує слова з файлу
+     * @param path шлях до файлу з словами
+     * @param wordCount кількість слів
+     * @return массив строк
+     */
     private static String[] loadWordsFromFile(String path,int wordCount){
         String[] st = new String[wordCount];
         try (BufferedReader br = new BufferedReader(new FileReader(path))){
@@ -152,14 +177,23 @@ public class LyricNN extends Application {
         }
         return st;
     }
+    
+    /**
+     * Обновляє номери слів
+     */
     public static void updateNumbers(){
         for (int i = 0; i < 10; i++) {
             lblNom[i].setText(""+cbMass[i].getSelectionModel().getSelectedIndex());
         }
         fillTextAnswer(getAnswer());
     }
+    
+    /**
+     * Отримує відповідь нейронної мережі
+     * @return 
+     */
     public static int[] getAnswer(){
-        double ans[] = nn1.getAnswer();
+        double ans[] = nn1.getAnswer(); // нічого не змінювалося тому, що завдання було старим(останнє введене питаня/завдання), необхідно змінювати завдання.
         double biggest[] = new double[10];
         int biggestNumb[] = new int[10];
         for (int i = 0; i < ans.length; i++) {
@@ -179,6 +213,10 @@ public class LyricNN extends Application {
         }
         return biggestNumb;
     }
+    /**
+     * Заповнити словами текстові мітки
+     * @param numbers порядкові номера слів
+     */
     public static void fillTextAnswer(int[] numbers){
         for (int i = 0; i < 10; i++) {
             lblWords[i].setText(words.get(numbers[i]));
