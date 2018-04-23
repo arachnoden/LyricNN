@@ -6,8 +6,13 @@
 package lyricnn;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import javafx.application.Application;
@@ -20,6 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import neuralnetwork.NeuralNetwork;
 
@@ -38,7 +44,7 @@ public class LyricNN extends Application {
         
         VBox root = new VBox(5);
         HBox vhidDann = new HBox(5);
-        root.getChildren().add(vhidDann);
+        //root.getChildren().add(vhidDann);
         
         TextField tf[] = new TextField[10];
         for (TextField textField : tf) {
@@ -90,7 +96,44 @@ public class LyricNN extends Application {
             trainNetwork(nn1,lbl);
         });
         
-        root.getChildren().addAll(lbl,btn,hbSlova,hbNomery,hbSlovaRez);
+        HBox hbLoadSave = new HBox(5);
+        Button save = new Button("Зберегти");
+        Button load = new Button("Завантажити");
+        
+        save.setOnAction(pdj ->{
+            FileChooser fcZb = new FileChooser();
+            fcZb.setInitialDirectory(new File("C:/"));
+            fcZb.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Нейр. Мережа", "*.nmz"),
+                    new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+            File fZb = fcZb.showSaveDialog(primaryStage);
+            if(fZb==null)return;
+            try(FileOutputStream fos = new FileOutputStream(fZb)){
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(nn1);
+            } catch (IOException ex) {
+                System.out.println("Помилка запису файлу");
+                System.out.println(ex.getClass().getSimpleName());
+            }
+        });
+        load.setOnAction(pdj ->{
+            FileChooser fch = new FileChooser();
+            fch.setInitialDirectory(new File("C:/"));
+            fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Планчик", "*.nmz"),
+                    new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+            File fl = fch.showOpenDialog(primaryStage);
+            if(fl==null)return;
+            try(FileInputStream fis = new FileInputStream(fl)){
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                nn1 = (NeuralNetwork)ois.readObject();
+            } catch (IOException | ClassNotFoundException ex) {
+                System.out.println("Помилка завантаження файлу");
+                System.out.println(ex.getClass().getSimpleName());
+            }
+        });
+        
+        hbLoadSave.getChildren().addAll(save,load);
+        
+        root.getChildren().addAll(hbLoadSave,vhidDann,lbl,btn,hbSlova,hbNomery,hbSlovaRez);
         Scene scene = new Scene(root, 1000, 250);
         
         
