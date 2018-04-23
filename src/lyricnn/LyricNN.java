@@ -46,12 +46,12 @@ public class LyricNN extends Application {
         HBox vhidDann = new HBox(5);
         //root.getChildren().add(vhidDann);
         
-        TextField tf[] = new TextField[10];
+        /*TextField tf[] = new TextField[10];
         for (TextField textField : tf) {
             textField = stvorTFdlCyfry(35);
             textField.setText("0");
             vhidDann.getChildren().add(textField);
-        }
+        }*/
         EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
             updateNumbers();
         };
