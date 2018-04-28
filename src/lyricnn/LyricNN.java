@@ -13,11 +13,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -75,30 +73,29 @@ public class LyricNN extends Application {
                         new FileChooser.ExtensionFilter("Всі файли", "*.*"));
                 File fl = fch.showOpenDialog(primaryStage);
                 if(fl==null)return;
-                System.out.println(""+fl.getAbsolutePath());
-                words = Arrays.asList(loadWordsFromFile(fl.getAbsolutePath()));
-                for (int i = 0; i < 10; i++) {
+                //System.out.println(""+fl.getAbsolutePath());
+                //words = Arrays.asList(loadWordsFromFile(fl.getAbsolutePath()));
+                /*for (int i = 0; i < 10; i++) {
                     cbMass[i] = new ComboBox<>();
                     cbMass[i].getItems()
                             .addAll(words);
                     cbMass[i].getSelectionModel().select(0);
                     cbMass[i].setOnAction(podij);
-                    hbSlova.getChildren().add(cbMass[i]);
-                }
-                /*try(FileInputStream fis = new FileInputStream(fl)){
-                    ObjectInputStream ois = new ObjectInputStream(fis);
-                    String txt = (NeuralNetwork)ois.readObject();
-                } catch (IOException | ClassNotFoundException ex) {
-                    System.out.println("Помилка завантаження файлу");
-                    System.out.println(ex.getClass().getSimpleName());
+                    hbSlova.getChildren().add(cbMass[i]);//потім перемістити цей пункт в нову кнопку з відфільтрованими словами
                 }*/
+                taSlova.setText(loadWordsFromFile(fl.getAbsolutePath()));
             });
             
-            root1.getChildren().addAll(knpZavant,lblKnpCount,taSlova);
+            Button knpDelDup = new Button("Удалить дубликаты");
+            knpDelDup.setOnAction(act ->{
+                tAr.setText(arrayListToString(deleteDups(tAr.getText())));
+            });
+            
+            root1.getChildren().addAll(knpZavant,lblKnpCount,taSlova,knpDelDup);
         
         wordSelect.setContent(root1);
         
-        //----------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------------
         
         VBox root2 = new VBox(5);
         HBox vhidDann = new HBox(5);
@@ -267,24 +264,21 @@ public class LyricNN extends Application {
      * @param wordCount кількість слів
      * @return массив строк
      */
-    private static String[] loadWordsFromFile(String path){
-        String[] st = null;
-        String middle="";
+    //private static String[] loadWordsFromFile(String path){
+    private static String loadWordsFromFile(String path){
+        String st = null;
+        String middle;
         String middle2="";
         try (BufferedReader br = new BufferedReader(new FileReader(path))){
-            /*st = br.readLine().replaceAll(",", "").replaceAll(".", "").replaceAll("?", "").replaceAll("!", "")
-                    .replaceAll(";", "").replaceAll("-", "").replaceAll(":", "").replaceAll("(", "")
-                    .replaceAll(")", "").replaceAll("+", "").replaceAll("*", "").split(" ");*/
-            
             while((middle = br.readLine()) != null){
-                middle2 += middle;//br.readLine().replaceAll(",;.;!;\\?", "").split(" ");
+                middle2 += middle+" ";//br.readLine().replaceAll(",;.;!;\\?", "").split(" ");
             }
-            st = middle2.replaceAll(",", "").replaceAll("\\.", "").replaceAll("\\?", "").replaceAll("!", "")
-                    .replaceAll(";", "").replaceAll("-", "").replaceAll(":", "").replaceAll("\\(", "")
-                    .replaceAll("\\)", "").replaceAll("\\+", "").replaceAll("\\*", "").split(" ");
+            st = middle2.replaceAll("\\pP", "")/*.split(" ")*/;
+            st = st.replaceAll(" ", "\n");
         } catch (Exception e) {
             System.out.println("Not mathc count");
         }
+        //System.out.println("count words - "+st.length);
         return st;
     }
     
@@ -339,5 +333,41 @@ public class LyricNN extends Application {
         for (int i = 0; i < 10; i++) {
             btnWords[i].setText(words.get(numbers[i]));
         }
+    }
+    
+    /**
+     * Видаляє дублюючіся слова з списку
+     * @param wrd строка зі словами
+     * @return массив відсортованих слів
+     */
+    public ArrayList<String> deleteDups(String wrd){
+        System.out.println("delDups");
+        System.out.println("wrd - "+wrd);
+        List<String> uns = Arrays.asList(wrd.split("\n"));
+        System.out.println("length - "+uns.size());
+        ArrayList<String> sorted = new ArrayList<>();
+        
+        for (String un : uns) {
+            boolean copy=false;
+            //String checked=un;
+            for (String string : sorted) {
+                System.out.println(string+" -- "+un);
+                if(string.equals(un))copy=true;
+                System.out.println("copy - "+copy);
+            }
+            if(copy)continue;
+            sorted.add(un);
+        }
+        
+        return sorted;
+    }
+    
+    public String arrayListToString(ArrayList<String> wrds){
+        System.out.println("ArrToStr");
+        String txt="";
+        for (String wrd : wrds) {
+            txt+=wrd+"\n";
+        }
+        return txt;
     }
 }
