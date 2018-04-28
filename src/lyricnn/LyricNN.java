@@ -22,6 +22,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -38,11 +41,34 @@ public class LyricNN extends Application {
     private static NeuralNetwork nn1;
     private static ComboBox<String>[] cbMass;
     private static Label lblNom[];
-    private static Label lblWords[];
+    private static Button btnWords[];
+    TextArea tAr;
     @Override
     public void start(Stage primaryStage) {
         
-        VBox root = new VBox(5);
+        TabPane tp = new TabPane();
+        Tab wordSelect = new Tab("Відбір слів");
+            wordSelect.setClosable(false);
+
+            VBox root1 = new VBox(5);
+
+            Button knpZavant = new Button("Загрузить слова");
+            Label lblKnpCount = new Label("Количество слов");
+            TextArea taSlova = new TextArea();
+            taSlova.setWrapText(true);
+            //Label testLbl = new Label("whatWord");
+            knpZavant.setOnAction(pdj ->{
+                //testLbl.setText(taSlova.getText().replaceAll("\n", ","));
+
+            });
+            
+            root1.getChildren().addAll(knpZavant,lblKnpCount,taSlova);
+        
+        wordSelect.setContent(root1);
+        
+        //----------------------------------------------------------------------------------------------
+        
+        VBox root2 = new VBox(5);
         HBox vhidDann = new HBox(5);
         EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
             updateNumbers();
@@ -59,11 +85,19 @@ public class LyricNN extends Application {
             hbNomery.getChildren().add(lblNom[i]);
         }
         
+        EventHandler<ActionEvent> wordsPod = (ActionEvent aEv) -> {
+            //------------------------------------------------------------------------
+            Button knp = (Button)aEv.getSource();
+            System.out.println(""+knp.getText());
+            tAr.appendText(" "+knp.getText());
+        };
+        
         HBox hbSlovaRez = new HBox(5);
-        lblWords = new Label[10];
+        btnWords = new Button[10];
         for (int i = 0; i < 10; i++) {
-            lblWords[i] = new Label("Slovo");
-            hbSlovaRez.getChildren().add(lblWords[i]);
+            btnWords[i] = new Button("Slovo");
+            hbSlovaRez.getChildren().add(btnWords[i]);
+            btnWords[i].setOnAction(wordsPod);
         }
         
         cbMass = new ComboBox[10];
@@ -76,11 +110,9 @@ public class LyricNN extends Application {
             hbSlova.getChildren().add(cbMass[i]);
         }
         
-        //hbSlova.getChildren().add(cbWords);
         
         Label lbl = new Label("Total Error");
         
-        //nn1.setLabel(lbl);
         nn1 = new NeuralNetwork(262, new int[]{262,262/*,262,262*/,262});
         
         Button btn = new Button("Train");
@@ -125,14 +157,21 @@ public class LyricNN extends Application {
         
         hbLoadSave.getChildren().addAll(save,load);
         
-        root.getChildren().addAll(hbLoadSave,vhidDann,lbl,btn,hbSlova,hbNomery,hbSlovaRez);
-        Scene scene = new Scene(root, 1000, 250);
+        tAr = new TextArea("balblblfjdk");
+        tAr.setWrapText(true);
+        tAr.setEditable(false);
+        
+        root2.getChildren().addAll(hbLoadSave,vhidDann,lbl,btn,hbSlova,hbNomery,hbSlovaRez,tAr);
+        Tab tbExec = new Tab("Робота з словами");
+        tbExec.setClosable(false);
+        tbExec.setContent(root2);
+        tp.getTabs().addAll(wordSelect,tbExec);
+        Scene scene = new Scene(tp, 1000, 450);
         
         
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
-        //trainNetwork(nn1);
     }
 
     /**
@@ -219,6 +258,7 @@ public class LyricNN extends Application {
     public static void updateNumbers(){
         int[] nums = new int[10];
         for (int i = 0; i < 10; i++) {
+            //заповнює мітки порядковими номерами слів
             lblNom[i].setText(""+cbMass[i].getSelectionModel().getSelectedIndex());
             nums[i]=cbMass[i].getSelectionModel().getSelectedIndex();
         }
@@ -231,6 +271,7 @@ public class LyricNN extends Application {
     
     /**
      * Отримує відповідь нейронної мережі
+     * @param question завдання
      * @return 
      */
     public static int[] getAnswer(double[] question){
@@ -238,18 +279,18 @@ public class LyricNN extends Application {
         double biggest[] = new double[10];
         int biggestNumb[] = new int[10];
         for (int i = 0; i < ans.length; i++) {
-            double checked = ans[i];
-            int chekedNum = i;
-            double buffer = 0;
-            int bufferNum = 0;
+            double checked = ans[i];//массив що перевіряється
+            //int chekedNum = i;//номера які потрібно відібрати
+            double buffer = 0;//буффер
+            int bufferNum = 0;//буффер номерів
             for (int j = 0; j < 10; j++) {
-                if(biggest[j]>checked)continue;
-                buffer = biggest[j];
-                bufferNum = biggestNumb[j];
-                biggest[j] = checked;
-                biggestNumb[j] = i;
-                checked = buffer;
-                chekedNum = bufferNum;
+                if(biggest[j]>checked)continue;//якщо найбільший найближчий більше за той що перевіряється - наступний
+                buffer = biggest[j];//якщо ні то в буфер передається поточний найбільший
+                bufferNum = biggestNumb[j];//буфер номера передається найбільший номер
+                biggest[j] = checked;//в найбільший передається перевіряємий
+                biggestNumb[j] = i;//в найбільший номер передається поточний перевіряємий номер
+                checked = buffer;//перевіряємий тепер попередній що виявився меншим
+                //chekedNum = bufferNum;
             }
         }
         return biggestNumb;
@@ -260,7 +301,7 @@ public class LyricNN extends Application {
      */
     public static void fillTextAnswer(int[] numbers){
         for (int i = 0; i < 10; i++) {
-            lblWords[i].setText(words.get(numbers[i]));
+            btnWords[i].setText(words.get(numbers[i]));
         }
     }
 }
