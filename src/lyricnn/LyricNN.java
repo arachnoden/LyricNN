@@ -13,8 +13,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -43,8 +46,15 @@ public class LyricNN extends Application {
     private static Label lblNom[];
     private static Button btnWords[];
     TextArea tAr;
+    String pathWords;
     @Override
     public void start(Stage primaryStage) {
+        HBox hbSlova = new HBox(5);
+        HBox hbNomery = new HBox(5);
+        cbMass = new ComboBox[10];
+        EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
+            updateNumbers();
+        };
         
         TabPane tp = new TabPane();
         Tab wordSelect = new Tab("Відбір слів");
@@ -59,7 +69,29 @@ public class LyricNN extends Application {
             //Label testLbl = new Label("whatWord");
             knpZavant.setOnAction(pdj ->{
                 //testLbl.setText(taSlova.getText().replaceAll("\n", ","));
-
+                FileChooser fch = new FileChooser();
+                fch.setInitialDirectory(new File("C:/"));
+                fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
+                        new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+                File fl = fch.showOpenDialog(primaryStage);
+                if(fl==null)return;
+                System.out.println(""+fl.getAbsolutePath());
+                words = Arrays.asList(loadWordsFromFile(fl.getAbsolutePath()));
+                for (int i = 0; i < 10; i++) {
+                    cbMass[i] = new ComboBox<>();
+                    cbMass[i].getItems()
+                            .addAll(words);
+                    cbMass[i].getSelectionModel().select(0);
+                    cbMass[i].setOnAction(podij);
+                    hbSlova.getChildren().add(cbMass[i]);
+                }
+                /*try(FileInputStream fis = new FileInputStream(fl)){
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+                    String txt = (NeuralNetwork)ois.readObject();
+                } catch (IOException | ClassNotFoundException ex) {
+                    System.out.println("Помилка завантаження файлу");
+                    System.out.println(ex.getClass().getSimpleName());
+                }*/
             });
             
             root1.getChildren().addAll(knpZavant,lblKnpCount,taSlova);
@@ -70,13 +102,7 @@ public class LyricNN extends Application {
         
         VBox root2 = new VBox(5);
         HBox vhidDann = new HBox(5);
-        EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
-            updateNumbers();
-        };
         
-        words = Arrays.asList(loadWordsFromFile("E:\\Users\\Den\\Desktop\\jar\\Words.txt", 262));
-        HBox hbSlova = new HBox(5);
-        HBox hbNomery = new HBox(5);
         
         
         lblNom = new Label[10];
@@ -100,15 +126,14 @@ public class LyricNN extends Application {
             btnWords[i].setOnAction(wordsPod);
         }
         
-        cbMass = new ComboBox[10];
         
-        for (int i = 0; i < 10; i++) {
+        /*for (int i = 0; i < 10; i++) {
             cbMass[i] = new ComboBox<>();
             cbMass[i].getItems().addAll(words);
             cbMass[i].getSelectionModel().select(0);
             cbMass[i].setOnAction(podij);
             hbSlova.getChildren().add(cbMass[i]);
-        }
+        }*/
         
         
         Label lbl = new Label("Total Error");
@@ -242,10 +267,21 @@ public class LyricNN extends Application {
      * @param wordCount кількість слів
      * @return массив строк
      */
-    private static String[] loadWordsFromFile(String path,int wordCount){
-        String[] st = new String[wordCount];
+    private static String[] loadWordsFromFile(String path){
+        String[] st = null;
+        String middle="";
+        String middle2="";
         try (BufferedReader br = new BufferedReader(new FileReader(path))){
-            st = br.readLine().split(",");
+            /*st = br.readLine().replaceAll(",", "").replaceAll(".", "").replaceAll("?", "").replaceAll("!", "")
+                    .replaceAll(";", "").replaceAll("-", "").replaceAll(":", "").replaceAll("(", "")
+                    .replaceAll(")", "").replaceAll("+", "").replaceAll("*", "").split(" ");*/
+            
+            while((middle = br.readLine()) != null){
+                middle2 += middle;//br.readLine().replaceAll(",;.;!;\\?", "").split(" ");
+            }
+            st = middle2.replaceAll(",", "").replaceAll("\\.", "").replaceAll("\\?", "").replaceAll("!", "")
+                    .replaceAll(";", "").replaceAll("-", "").replaceAll(":", "").replaceAll("\\(", "")
+                    .replaceAll("\\)", "").replaceAll("\\+", "").replaceAll("\\*", "").split(" ");
         } catch (Exception e) {
             System.out.println("Not mathc count");
         }
