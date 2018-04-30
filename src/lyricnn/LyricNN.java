@@ -83,17 +83,44 @@ public class LyricNN extends Application {
                     cbMass[i].setOnAction(podij);
                     hbSlova.getChildren().add(cbMass[i]);//потім перемістити цей пункт в нову кнопку з відфільтрованими словами
                 }*/
-                taSlova.setText(loadWordsFromFile(fl.getAbsolutePath()));
+                taSlova.appendText(loadWordsFromFile(fl.getAbsolutePath()));
             });
             
             Button knpDelDup = new Button("Удалить дубликаты");
             knpDelDup.setOnAction(act ->{
-                tAr.setText(arrayListToString(deleteDups(tAr.getText())));
+                System.out.println("knp txt - "+taSlova.getText());
+                taSlova.setText(arrayListToString(deleteDups(taSlova.getText()/*.toLowerCase()*/)));
             });
             
             root1.getChildren().addAll(knpZavant,lblKnpCount,taSlova,knpDelDup);
         
         wordSelect.setContent(root1);
+        
+        //------- 2 створення--------------------------------------------------------------------------------------------------------------
+        
+        Tab textAnalyze = new Tab("Анализ текста");
+        textAnalyze.setClosable(false);
+        
+            VBox vbTAnl = new VBox(5);
+            
+            TextArea taTAnl = new TextArea();
+            taTAnl.setWrapText(true);
+            
+            Button knpLoadWords = new Button("Загрузить");
+            knpLoadWords.setOnAction(pdj ->{
+                FileChooser fch = new FileChooser();
+                fch.setInitialDirectory(new File("C:/"));
+                fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
+                        new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+                File fl = fch.showOpenDialog(primaryStage);
+                if(fl==null)return;
+                taTAnl.appendText(loadWordsFromFile(fl.getAbsolutePath()));
+            });
+            
+            vbTAnl.getChildren().addAll(knpLoadWords,taTAnl);
+            
+        textAnalyze.setContent(vbTAnl);
+        
         
         //------------------------------------------------------------------------------------------------------------------------------
         
@@ -187,7 +214,7 @@ public class LyricNN extends Application {
         Tab tbExec = new Tab("Робота з словами");
         tbExec.setClosable(false);
         tbExec.setContent(root2);
-        tp.getTabs().addAll(wordSelect,tbExec);
+        tp.getTabs().addAll(wordSelect,textAnalyze,tbExec);
         Scene scene = new Scene(tp, 1000, 450);
         
         
@@ -273,7 +300,7 @@ public class LyricNN extends Application {
             while((middle = br.readLine()) != null){
                 middle2 += middle+" ";//br.readLine().replaceAll(",;.;!;\\?", "").split(" ");
             }
-            st = middle2.replaceAll("\\pP", "")/*.split(" ")*/;
+            st = middle2.replaceAll("\\pP", "").toLowerCase()/*.split(" ")*/;
             st = st.replaceAll(" ", "\n");
         } catch (Exception e) {
             System.out.println("Not mathc count");
@@ -341,25 +368,37 @@ public class LyricNN extends Application {
      * @return массив відсортованих слів
      */
     public ArrayList<String> deleteDups(String wrd){
-        System.out.println("delDups");
-        System.out.println("wrd - "+wrd);
         List<String> uns = Arrays.asList(wrd.split("\n"));
-        System.out.println("length - "+uns.size());
         ArrayList<String> sorted = new ArrayList<>();
         
-        for (String un : uns) {
-            boolean copy=false;
-            //String checked=un;
-            for (String string : sorted) {
-                System.out.println(string+" -- "+un);
-                if(string.equals(un))copy=true;
-                System.out.println("copy - "+copy);
-            }
-            if(copy)continue;
-            sorted.add(un);
-        }
+        passCheck(uns, sorted);
+        /*uns=sorted;
+        uns.add(uns.get(0));
+        uns.remove(0);
+        sorted=new ArrayList<>();
+        passCheck(uns, sorted);*/
         
         return sorted;
+    }
+
+    public void passCheck(List<String> uns, ArrayList<String> sorted) {
+        for (String un : uns) {
+            boolean copy=false;
+            for (String str : sorted) {
+                System.out.println(str+" -- "+un);
+                System.out.println(str+" -- "+un+" -- "+str.equals(un));
+                if(str.equals(un)){
+                    System.out.println("copy = true!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    copy=true;
+                }
+                System.out.println("copy - "+copy);
+            }
+            if(!copy)sorted.add(un);
+            
+        }
+        /*Set<String> stStr = new HashSet<String>();
+        stStr.addAll(uns);
+        sorted.addAll(stStr);*/
     }
     
     public String arrayListToString(ArrayList<String> wrds){
