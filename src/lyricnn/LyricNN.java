@@ -43,6 +43,10 @@ public class LyricNN extends Application {
     private static ComboBox<String>[] cbMass;
     private static Label lblNom[];
     private static Button btnWords[];
+    ArrayList<String> sortedWords;
+    List<String> checkedWords;
+    double[][] task;
+    double[][] answers;
     TextArea tAr;
     String pathWords;
     @Override
@@ -64,15 +68,14 @@ public class LyricNN extends Application {
             Label lblKnpCount = new Label("Количество слов");
             TextArea taSlova = new TextArea();
             taSlova.setWrapText(true);
-            //Label testLbl = new Label("whatWord");
             knpZavant.setOnAction(pdj ->{
                 //testLbl.setText(taSlova.getText().replaceAll("\n", ","));
-                FileChooser fch = new FileChooser();
+                /*FileChooser fch = new FileChooser();
                 fch.setInitialDirectory(new File("C:/"));
                 fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
                         new FileChooser.ExtensionFilter("Всі файли", "*.*"));
                 File fl = fch.showOpenDialog(primaryStage);
-                if(fl==null)return;
+                if(fl==null)return;*/
                 //System.out.println(""+fl.getAbsolutePath());
                 //words = Arrays.asList(loadWordsFromFile(fl.getAbsolutePath()));
                 /*for (int i = 0; i < 10; i++) {
@@ -83,7 +86,8 @@ public class LyricNN extends Application {
                     cbMass[i].setOnAction(podij);
                     hbSlova.getChildren().add(cbMass[i]);//потім перемістити цей пункт в нову кнопку з відфільтрованими словами
                 }*/
-                taSlova.appendText(loadWordsFromFile(fl.getAbsolutePath()));
+                //taSlova.appendText(loadWordsFromFile(fl.getAbsolutePath()));
+                loadWindow(primaryStage, taSlova);
             });
             
             Button knpDelDup = new Button("Удалить дубликаты");
@@ -102,25 +106,39 @@ public class LyricNN extends Application {
         textAnalyze.setClosable(false);
         
             VBox vbTAnl = new VBox(5);
+            HBox hbButPan = new HBox(5);
             
             TextArea taTAnl = new TextArea();
             taTAnl.setWrapText(true);
             
             Button knpLoadWords = new Button("Загрузить");
             knpLoadWords.setOnAction(pdj ->{
-                FileChooser fch = new FileChooser();
-                fch.setInitialDirectory(new File("C:/"));
-                fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
-                        new FileChooser.ExtensionFilter("Всі файли", "*.*"));
-                File fl = fch.showOpenDialog(primaryStage);
-                if(fl==null)return;
-                taTAnl.appendText(loadWordsFromFile(fl.getAbsolutePath()));
+                loadWindow(primaryStage,taTAnl);
             });
             
-            vbTAnl.getChildren().addAll(knpLoadWords,taTAnl);
+            Button knpMemoryWords = new Button("Создать");
+            knpMemoryWords.setOnAction(pdj ->{
+                checkedWords = Arrays.asList(taTAnl.getText().split("\n"));
+                checkedWords.forEach(wrd -> System.out.println(wrd));
+                System.out.println("size - "+checkedWords.size());
+            });
+            
+            Button knpCrTasAnsw = new Button("Создать задания/ответы");
+            knpCrTasAnsw.setOnAction(pdj ->{
+                task = new double[sortedWords.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                answers = new double[sortedWords.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                
+                for (int i = 0; i < sortedWords.size()-10; i++) {
+                    
+                }
+                
+            });
+            
+            hbButPan.getChildren().addAll(knpLoadWords,knpMemoryWords);
+            
+            vbTAnl.getChildren().addAll(hbButPan,taTAnl);
             
         textAnalyze.setContent(vbTAnl);
-        
         
         //------------------------------------------------------------------------------------------------------------------------------
         
@@ -221,6 +239,16 @@ public class LyricNN extends Application {
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    public void loadWindow(Stage priSt, TextArea ta) {
+        FileChooser fch = new FileChooser();
+        fch.setInitialDirectory(new File("C:/"));
+        fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
+                new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+        File fl = fch.showOpenDialog(priSt);
+        if(fl==null)return;
+        ta.appendText(loadWordsFromFile(fl.getAbsolutePath()));
     }
 
     /**
@@ -369,22 +397,23 @@ public class LyricNN extends Application {
      */
     public ArrayList<String> deleteDups(String wrd){
         List<String> uns = Arrays.asList(wrd.split("\n"));
-        ArrayList<String> sorted = new ArrayList<>();
+        //ArrayList<String> sorted = new ArrayList<>();
         
-        passCheck(uns, sorted);
+        passCheck(uns/*, sorted*/);
         /*uns=sorted;
         uns.add(uns.get(0));
         uns.remove(0);
         sorted=new ArrayList<>();
         passCheck(uns, sorted);*/
         
-        return sorted;
+        return sortedWords;
     }
 
-    public void passCheck(List<String> uns, ArrayList<String> sorted) {
+    public void passCheck(List<String> uns/*, ArrayList<String> sorted*/) {
         for (String un : uns) {
             boolean copy=false;
-            for (String str : sorted) {
+            if(sortedWords==null)sortedWords=new ArrayList<>();
+            for (String str : sortedWords) {
                 System.out.println(str+" -- "+un);
                 System.out.println(str+" -- "+un+" -- "+str.equals(un));
                 if(str.equals(un)){
@@ -393,7 +422,7 @@ public class LyricNN extends Application {
                 }
                 System.out.println("copy - "+copy);
             }
-            if(!copy)sorted.add(un);
+            if(!copy)sortedWords.add(un);
             
         }
         /*Set<String> stStr = new HashSet<String>();
