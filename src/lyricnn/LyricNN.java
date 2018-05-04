@@ -6,10 +6,12 @@
 package lyricnn;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,9 +44,16 @@ public class LyricNN extends Application {
     private static NeuralNetwork nn1;
     private static ComboBox<String>[] cbMass;
     private static Label lblNom[];
+    /**
+     * Массив кнопок з словами
+     */
     private static Button btnWords[];
     ArrayList<String> sortedWords;
-    List<String> checkedWords;
+    
+    /**
+     * Слова на основі яких потрібно натренувати нейронну мережу
+     */
+    List<String> smpTskWrd;
     double[][] task;
     double[][] answers;
     TextArea tAr;
@@ -111,30 +120,73 @@ public class LyricNN extends Application {
             TextArea taTAnl = new TextArea();
             taTAnl.setWrapText(true);
             
-            Button knpLoadWords = new Button("Загрузить");
+            Button knpLoadWords = new Button("Загрузить пример");
             knpLoadWords.setOnAction(pdj ->{
                 loadWindow(primaryStage,taTAnl);
             });
             
             Button knpMemoryWords = new Button("Создать");
             knpMemoryWords.setOnAction(pdj ->{
-                checkedWords = Arrays.asList(taTAnl.getText().split("\n"));
-                checkedWords.forEach(wrd -> System.out.println(wrd));
-                System.out.println("size - "+checkedWords.size());
+                smpTskWrd = Arrays.asList(taTAnl.getText().split("\n"));
+                //task = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                //answers = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                //checkedWords.forEach(wrd -> System.out.println(wrd));
+                //System.out.println("size - "+checkedWords.size());
             });
             
-            Button knpCrTasAnsw = new Button("Создать задания/ответы");
+            Button knpCrTasAnsw = new Button("Создать/дополнить задания/ответы");
             knpCrTasAnsw.setOnAction(pdj ->{
-                task = new double[sortedWords.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                answers = new double[sortedWords.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                
-                for (int i = 0; i < sortedWords.size()-10; i++) {
-                    
+                task = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                answers = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                for (int i = 0; i < smpTskWrd.size()-10; i++) {
+                    double x = 1000.0;
+                    for (int j = 0; j < 10; j++) {
+                        if(task[i][sortedWords.indexOf(smpTskWrd.get(i+j))]==0.0){
+                            task[i][sortedWords.indexOf(smpTskWrd.get(i+j))]=x/1000.0;
+                            x=x-100.0;
+                        }
+                    }
+                    answers[i][sortedWords.indexOf(smpTskWrd.get(i+10))]=1.0;
                 }
                 
             });
             
-            hbButPan.getChildren().addAll(knpLoadWords,knpMemoryWords);
+            Button knpZberVFajl = new Button("Сохранить в файл");
+            knpZberVFajl.setOnAction(pdj ->{
+                FileChooser fcZb = new FileChooser();
+                File flOsZb = new File("C:/");
+                //if(!flOsZb.exists()&&!flOsZb.isDirectory())flOsZb = new File("C:/");
+                fcZb.setInitialDirectory(flOsZb);
+                fcZb.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
+                        new FileChooser.ExtensionFilter("Всі файли", "*.*"));
+                File fl = fcZb.showSaveDialog(primaryStage);
+                flOsZb = fl;
+                if(fl==null)return;
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl,true))){
+                    for (double[] ds : task) {
+                        for (double d : ds) {
+                            bw.write(d+",");
+                        }
+                        bw.newLine();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Not mathc count");
+                }
+                File fl2 = fcZb.showSaveDialog(primaryStage);
+                if(fl2==null)return;
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl2,true))){
+                    for (double[] ds : answers) {
+                        for (double d : ds) {
+                            bw.write(d+",");
+                        }
+                        bw.newLine();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Not mathc count");
+                }
+            });
+            
+            hbButPan.getChildren().addAll(knpLoadWords,knpMemoryWords,knpCrTasAnsw,knpZberVFajl);
             
             vbTAnl.getChildren().addAll(hbButPan,taTAnl);
             
@@ -209,7 +261,7 @@ public class LyricNN extends Application {
         load.setOnAction(pdj ->{
             FileChooser fch = new FileChooser();
             fch.setInitialDirectory(new File("C:/"));
-            fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Планчик", "*.nmz"),
+            fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Нейронна мережа", "*.nmz"),
                     new FileChooser.ExtensionFilter("Всі файли", "*.*"));
             File fl = fch.showOpenDialog(primaryStage);
             if(fl==null)return;
@@ -240,7 +292,12 @@ public class LyricNN extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
+    
+    /**
+     * Вмикає вікно завантаження слів з файлу
+     * @param priSt сцена до якої прив'язується вікно
+     * @param ta текстова зона в яку завантажуються слова
+     */
     public void loadWindow(Stage priSt, TextArea ta) {
         FileChooser fch = new FileChooser();
         fch.setInitialDirectory(new File("C:/"));
@@ -257,6 +314,7 @@ public class LyricNN extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    
     /**
      * Створює текстове поле для цифр
      * @param width ширина поля
@@ -288,6 +346,7 @@ public class LyricNN extends Application {
 
         new Thread(nn).start();
     }
+    
     /**
      * Завантажує завдання та відповіді з текстових файлів у массив
      * @param path шлях до файлу
@@ -380,6 +439,7 @@ public class LyricNN extends Application {
         }
         return biggestNumb;
     }
+    
     /**
      * Заповнити словами текстові мітки
      * @param numbers порядкові номера слів
@@ -408,19 +468,23 @@ public class LyricNN extends Application {
         
         return sortedWords;
     }
-
+    
+    /**
+     * Видаляє дублікати слів
+     * @param uns несортовані слова
+     */
     public void passCheck(List<String> uns/*, ArrayList<String> sorted*/) {
         for (String un : uns) {
             boolean copy=false;
             if(sortedWords==null)sortedWords=new ArrayList<>();
             for (String str : sortedWords) {
-                System.out.println(str+" -- "+un);
-                System.out.println(str+" -- "+un+" -- "+str.equals(un));
+                //System.out.println(str+" -- "+un);
+                //System.out.println(str+" -- "+un+" -- "+str.equals(un));
                 if(str.equals(un)){
-                    System.out.println("copy = true!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    //System.out.println("copy = true!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     copy=true;
                 }
-                System.out.println("copy - "+copy);
+                //System.out.println("copy - "+copy);
             }
             if(!copy)sortedWords.add(un);
             
@@ -430,6 +494,11 @@ public class LyricNN extends Application {
         sorted.addAll(stStr);*/
     }
     
+    /**
+     * Перетворює массив в строку
+     * @param wrds массив слів які потрібно перетворити в строку
+     * @return строку слів з массива
+     */
     public String arrayListToString(ArrayList<String> wrds){
         System.out.println("ArrToStr");
         String txt="";
