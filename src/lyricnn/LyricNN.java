@@ -140,10 +140,11 @@ public class LyricNN extends Application {
                 answers = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
                 for (int i = 0; i < smpTskWrd.size()-10; i++) {
                     double x = 1000.0;
-                    for (int j = 0; j < 10; j++) {
+                    //for (int j = 0; j < 10; j++) {
+                    for (int j=9;j>=0;j--) {
                         if(task[i][sortedWords.indexOf(smpTskWrd.get(i+j))]==0.0){
                             task[i][sortedWords.indexOf(smpTskWrd.get(i+j))]=x/1000.0;
-                            x=x-100.0;
+                            x=x-75.0;
                         }
                     }
                     answers[i][sortedWords.indexOf(smpTskWrd.get(i+10))]=1.0;
@@ -232,7 +233,7 @@ public class LyricNN extends Application {
         
         Label lbl = new Label("Total Error");
         
-        nn1 = new NeuralNetwork(262, new int[]{262,262/*,262,262*/,262});
+        nn1 = new NeuralNetwork(79, new int[]{79,79/*,262,262*/,79});
         
         Button btn = new Button("Train");
         btn.setOnAction(act -> {
@@ -339,12 +340,13 @@ public class LyricNN extends Application {
      * @param lbl мітка яка буде відображати хід тренування
      */
     public static void trainNetwork(NeuralNetwork nn, Label lbl){
-        double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\jar\\Task.txt", 7, 262);
-        double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\jar\\Answer.txt", 7, 262);
+        double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\001.txt", 39, 79);
+        double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\002.txt", 39, 79);
         lbl.textProperty().bind(nn.messageProperty());
         nn.setParameters(taskSet, answerSet, 0.4, 0.4);
-
+        System.out.println("done 2");
         new Thread(nn).start();
+        System.out.println("done 3");
     }
     
     /**
@@ -362,10 +364,10 @@ public class LyricNN extends Application {
             for (int i = 0; i < rows; i++) {
                 String st[] = br.readLine().split(",");
                 for (int j = 0; j < columns; j++) {
-                    arr[i][j]=Integer.parseInt(st[j]);
+                    arr[i][j]=Double.parseDouble(st[j]);
                 }
             }
-            
+            System.out.println("done");
         } catch (IOException e) {
             e.printStackTrace();
         }
