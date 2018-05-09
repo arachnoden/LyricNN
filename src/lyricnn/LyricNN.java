@@ -233,7 +233,8 @@ public class LyricNN extends Application {
         Button crNeuNet = new Button("Создать нейронную сеть");
         
         crNeuNet.setOnAction(pdj ->{
-            nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
+            //nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
+            ldb.createNN(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
             for (int i = 0; i < 10; i++) {
                 cbMass[i] = new ComboBox<>();
                 cbMass[i].getItems().addAll(ldb.getSortWords());
@@ -266,7 +267,7 @@ public class LyricNN extends Application {
         
         Button btn = new Button("Train");
         btn.setOnAction(act -> {
-            trainNetwork(nn1,lbl);
+            trainNetwork(ldb.getNN(),lbl);
         });
         
         HBox hbLoadSave = new HBox(5);
@@ -282,7 +283,7 @@ public class LyricNN extends Application {
             if(fZb==null)return;
             try(FileOutputStream fos = new FileOutputStream(fZb)){
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(nn1);
+                oos.writeObject(ldb);
             } catch (IOException ex) {
                 System.out.println("Помилка запису файлу");
                 System.out.println(ex.getClass().getSimpleName());
@@ -297,7 +298,7 @@ public class LyricNN extends Application {
             if(fl==null)return;
             try(FileInputStream fis = new FileInputStream(fl)){
                 ObjectInputStream ois = new ObjectInputStream(fis);
-                nn1 = (NeuralNetwork)ois.readObject();
+                ldb = (LyricDB)ois.readObject();
             } catch (IOException | ClassNotFoundException ex) {
                 System.out.println("Помилка завантаження файлу");
                 System.out.println(ex.getClass().getSimpleName());

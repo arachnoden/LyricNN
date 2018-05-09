@@ -17,9 +17,12 @@ public class LyricDB implements Serializable{
     private NeuralNetwork nn;
     private ArrayList<String> sortedWords;
     
-    public NeuralNetwork getNN(int sens, int[] networkMap){
-        if(nn==null)nn = new NeuralNetwork(sens, networkMap);
-        return nn;
+    public void setNN(NeuralNetwork n){
+        nn = n;
+    }
+    
+    public void createNN(int sens, int[] networkMap){
+        nn = new NeuralNetwork(sens, networkMap);
     }
     public NeuralNetwork getNN(){
         return nn;
