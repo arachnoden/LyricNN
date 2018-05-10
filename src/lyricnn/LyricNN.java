@@ -235,13 +235,7 @@ public class LyricNN extends Application {
         crNeuNet.setOnAction(pdj ->{
             //nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
             ldb.createNN(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
-            for (int i = 0; i < 10; i++) {
-                cbMass[i] = new ComboBox<>();
-                cbMass[i].getItems().addAll(ldb.getSortWords());
-                cbMass[i].getSelectionModel().select(0);
-                cbMass[i].setOnAction(podij);
-                hbSlova.getChildren().add(cbMass[i]);
-            }
+            createCBXS(podij,hbSlova);
         });
         
         btnWords = new Button[10];
@@ -303,6 +297,7 @@ public class LyricNN extends Application {
                 System.out.println("Помилка завантаження файлу");
                 System.out.println(ex.getClass().getSimpleName());
             }
+            createCBXS(podij,hbSlova);
         });
         
         hbLoadSave.getChildren().addAll(crNeuNet,save,load);
@@ -322,6 +317,16 @@ public class LyricNN extends Application {
         primaryStage.setTitle("Hello World!");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    public void createCBXS(EventHandler<ActionEvent> podij, HBox hbSlova) {
+        for (int i = 0; i < 10; i++) {
+            cbMass[i] = new ComboBox<>();
+            cbMass[i].getItems().addAll(ldb.getSortWords());
+            cbMass[i].getSelectionModel().select(0);
+            cbMass[i].setOnAction(podij);
+            hbSlova.getChildren().add(cbMass[i]);
+        }
     }
     
     /**
