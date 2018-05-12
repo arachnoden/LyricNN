@@ -65,8 +65,8 @@ public class LyricNN extends Application {
         HBox hbNomery = new HBox(5);
         cbMass = new ComboBox[10];
         EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
-            ComboBox<String> cb = (ComboBox<String>)aEv.getSource();
-            tAr.appendText(" "+cb.getSelectionModel().getSelectedItem());
+            //ComboBox<String> cb = (ComboBox<String>)aEv.getSource();
+            //tAr.appendText(" "+cb.getSelectionModel().getSelectedItem());
             updateNumbers();
         };
         
@@ -147,7 +147,7 @@ public class LyricNN extends Application {
                     //for (int j = 0; j < 10; j++) {
                     for (int j=9;j>=0;j--) {
                         if(task[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+j))]==0.0){
-                            task[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+j))]=x/1000.0;
+                            task[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+j))]/*+*/=x/1000.0;//1.0;
                             x=x-75.0;
                         }
                     }
@@ -212,12 +212,12 @@ public class LyricNN extends Application {
         
         EventHandler<ActionEvent> wordsPod = (ActionEvent aEv) -> {
             //------------------------------------------------------------------------
-            if(cbLissInst){
+            /*if(cbLissInst){
                 for (int i = 0; i < cbMass.length; i++) {
                     cbMass[i].setOnAction(null);
                 }
                 cbLissInst=false;
-            }
+            }*/
             Button knp = (Button)aEv.getSource();
             System.out.println(""+knp.getText());
             tAr.appendText(" "+knp.getText());
@@ -234,7 +234,7 @@ public class LyricNN extends Application {
         
         crNeuNet.setOnAction(pdj ->{
             //nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
-            ldb.createNN(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
+            ldb.createNN(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
             createCBXS(podij,hbSlova);
         });
         
@@ -378,7 +378,7 @@ public class LyricNN extends Application {
         double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\001.txt", ldb.getSortWords().size());
         double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\002.txt", ldb.getSortWords().size());
         lbl.textProperty().bind(nn.messageProperty());
-        nn.setParameters(taskSet, answerSet, 0.4, 0.2);
+        nn.setParameters(taskSet, answerSet, 0.1, 0.1);
         System.out.println("done 2");
         new Thread(nn).start();
         System.out.println("done 3");
@@ -453,9 +453,12 @@ public class LyricNN extends Application {
             nums[i]=cbMass[i].getSelectionModel().getSelectedIndex();
         }
         double[] nums2 = new double[ldb.getSortWords().size()];
-        for (int i = 0; i < 10; i++) {
-            System.out.println("check nums - "+nums[i]);
-            nums2[nums[i]]=1.0;
+        double x = 1000.0;
+        //for (int i = 0; i < 10; i++) {
+        for (int i=9;i>=0;i--) {
+            nums2[nums[i]]/*+*/=x/1000.0;//1.0;
+            System.out.println("check nums - "+nums[i]+" - "+nums2[nums[i]]+" - "+x);
+            x=x-75.0;
         }
         fillTextAnswer(getAnswer(nums2));
     }
