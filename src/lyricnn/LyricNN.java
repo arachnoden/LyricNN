@@ -59,16 +59,23 @@ public class LyricNN extends Application {
     double[][] task;
     double[][] answers;
     TextArea tAr;
-    private String pathWords;
+    //private String pathWords;
     boolean cbLissInst = true;
     private String filePath;
     private static String savePath;
     private static TextField tfTasks;
     private static TextField tfAnswers;
+    private static HBox hbNomery = new HBox(5);
+    private static HBox hbSlovaRez = new HBox(5);
+    static EventHandler<ActionEvent> wordsPod;
+    static TextField tfHidLay = stvorTFdlCyfry(50);
+    static TextField tfLearCo = stvorTFdlCyfry(50);
+    static TextField tfShurns = stvorTFdlCyfry(50);
+    static TextField tfWrdCoun = stvorTFdlCyfry(50);
+    static int num;
     @Override
     public void start(Stage primaryStage) {
         HBox hbSlova = new HBox(5);
-        HBox hbNomery = new HBox(5);
         
         HBox hbLoadSave = new HBox(5);
         Button save = new Button("Зберегти");
@@ -77,7 +84,7 @@ public class LyricNN extends Application {
         VBox vbTAnl = new VBox(5);
         HBox hbButPan = new HBox(5);
         
-        cbMass = new ComboBox[10];
+        //cbMass = new ComboBox[10];//1
         EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
             //ComboBox<String> cb = (ComboBox<String>)aEv.getSource();
             //tAr.appendText(" "+cb.getSelectionModel().getSelectedItem());
@@ -130,18 +137,18 @@ public class LyricNN extends Application {
             
             Button knpCrTasAnsw = new Button("Создать/дополнить задания/ответы");
             knpCrTasAnsw.setOnAction(pdj ->{
-                task = new double[smpTskWrd.size()-10][ldb.getSortWords().size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                answers = new double[smpTskWrd.size()-10][ldb.getSortWords().size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                for (int i = 0; i < smpTskWrd.size()-10; i++) {
+                task = new double[smpTskWrd.size()-num][ldb.getSortWords().size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                answers = new double[smpTskWrd.size()-num][ldb.getSortWords().size()];// ------------------- зробити потім можливість налаштування кількості --------------
+                for (int i = 0; i < smpTskWrd.size()-num; i++) {
                     double x = 1000.0;
                     //for (int j = 0; j < 10; j++) {
-                    for (int j=9;j>=0;j--) {
+                    for (int j=num-1;j>=0;j--) {
                         if(task[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+j))]==0.0){
                             task[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+j))]/*+*/=x/1000.0;//1.0;
                             x=x-75.0;
                         }
                     }
-                    answers[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+10))]=1.0;
+                    answers[i][ldb.getSortWords().indexOf(smpTskWrd.get(i+num))]=1.0;
                 }
                 
             });
@@ -182,7 +189,7 @@ public class LyricNN extends Application {
                     System.out.println("Not mathc count");
                 }*/
                 //File flOsZb = new File(savePath);
-                File fl = new File(savePath+tfTasks.getText()+".txt");
+                File fl = new File(savePath+"\\"+tfTasks.getText()+".txt");
                 //flOsZb = fl;
                 if(fl==null)return;
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl,true))){
@@ -197,7 +204,7 @@ public class LyricNN extends Application {
                 }
                 //File fl2 = fcZb.showSaveDialog(primaryStage);
                 //fcZb.setInitialDirectory(fl.getParentFile());
-                File fl2 = new File(savePath+tfAnswers.getText()+".txt");
+                File fl2 = new File(savePath+"\\"+tfAnswers.getText()+".txt");
                 if(fl2==null)return;
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl2,true))){
                     for (double[] ds : answers) {
@@ -224,13 +231,13 @@ public class LyricNN extends Application {
         
         
         
-        lblNom = new Label[10];
-        for (int i = 0; i < 10; i++) {
+        //lblNom = new Label[10];//2
+        /*for (int i = 0; i < 10; i++) {
             lblNom[i] = new Label();
             hbNomery.getChildren().add(lblNom[i]);
-        }
+        }*/
         
-        EventHandler<ActionEvent> wordsPod = (ActionEvent aEv) -> {
+        wordsPod = (ActionEvent aEv) -> {
             //------------------------------------------------------------------------
             /*if(cbLissInst){
                 for (int i = 0; i < cbMass.length; i++) {
@@ -241,29 +248,34 @@ public class LyricNN extends Application {
             Button knp = (Button)aEv.getSource();
             System.out.println(""+knp.getText());
             tAr.appendText(" "+knp.getText());
-            for (int i = 0; i < 10; i++) {
-                if(i<9)cbMass[i].getSelectionModel().select(cbMass[i+1].getSelectionModel().getSelectedIndex());
+            for (int i = 0; i < num; i++) {
+                if(i<num-1)cbMass[i].getSelectionModel().select(cbMass[i+1].getSelectionModel().getSelectedIndex());
                 else cbMass[i].getSelectionModel().select(knp.getText());
             }
             updateNumbers();
         };
         
-        HBox hbSlovaRez = new HBox(5);
+        
         
         Button crNeuNet = new Button("Создать нейронную сеть");
         
         crNeuNet.setOnAction(pdj ->{
-            //nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
-            ldb.createNN(ldb.getSortWords().size(), new int[]{/*ldb.getSortWords().size(),*/ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
+            int cnt = Integer.parseInt(tfHidLay.getText());
+            int[] str = new int[cnt];
+            int siz = ldb.getSortWords().size();
+            for (int i = 0; i < cnt; i++) {
+                str[i]=siz;
+            }
+            ldb.createNN(siz, str);
             createCBXS(podij,hbSlova);
         });
         
-        btnWords = new Button[10];
+        /*btnWords = new Button[10];//3
         for (int i = 0; i < 10; i++) {
             btnWords[i] = new Button("Slovo");
             hbSlovaRez.getChildren().add(btnWords[i]);
             btnWords[i].setOnAction(wordsPod);
-        }
+        }*/
         
         
         /*for (int i = 0; i < 10; i++) {
@@ -319,7 +331,7 @@ public class LyricNN extends Application {
         
         hbLoadSave.getChildren().addAll(crNeuNet,save,load);
         
-        tAr = new TextArea("balblblfjdk");
+        tAr = new TextArea();
         tAr.setWrapText(true);
         tAr.setEditable(false);
         
@@ -371,11 +383,19 @@ public class LyricNN extends Application {
             hbTasks.getChildren().addAll(new Label("файл заданий"),tfTasks);
             hbAnsw.getChildren().addAll(new Label("файл ответов"),tfAnswers);
             
-            
+
+            tfHidLay.setText("3");
+            tfLearCo.setText("3");
+            tfShurns.setText("30");
+            tfWrdCoun.setText("10");
             
             
             hbSave.getChildren().addAll(knpPathSave,lblSavPath);
-            vbSett.getChildren().addAll(hbLoadPath,hbSave,hbTasks,hbAnsw);
+            vbSett.getChildren().addAll(hbLoadPath,hbSave,hbTasks,hbAnsw,
+                    new HBox(new Label("Скрытых нейронов:  "),tfHidLay),
+                    new HBox(new Label("Коефициент обучения:  "),tfLearCo),
+                    new HBox(new Label("Уверенность сети:  "),tfShurns),
+                    new HBox(new Label("Кол. провер. слов:  "),tfWrdCoun));
         tbSett.setContent(vbSett);
         
         tp.getTabs().addAll(tbSett,wordSelect,textAnalyze,tbExec);
@@ -450,7 +470,7 @@ public class LyricNN extends Application {
         double taskSet[][] = loadArrayFromFile(savePath+"\\"+tfTasks.getText()+".txt", ldb.getSortWords().size());
         double answerSet[][] = loadArrayFromFile(savePath+"\\"+tfAnswers.getText()+".txt", ldb.getSortWords().size());
         lbl.textProperty().bind(nn.messageProperty());
-        nn.setParameters(taskSet, answerSet, 0.4, 0.4);
+        nn.setParameters(taskSet, answerSet, (Double.parseDouble(tfLearCo.getText())/10), (Double.parseDouble(tfShurns.getText())/100));
         new Thread(nn).start();
     }
     
@@ -619,6 +639,21 @@ public class LyricNN extends Application {
                 mas[i] = numb;
                 numb = bufferN;
             }
+        }
+    }
+    
+    public static void initiate(){
+        cbMass = new ComboBox[num];
+        lblNom = new Label[num];
+        for (int i = 0; i < 10; i++) {
+            lblNom[i] = new Label();
+            hbNomery.getChildren().add(lblNom[i]);
+        }
+        btnWords = new Button[10];//3
+        for (int i = 0; i < 10; i++) {
+            btnWords[i] = new Button("Slovo");
+            hbSlovaRez.getChildren().add(btnWords[i]);
+            btnWords[i].setOnAction(wordsPod);
         }
     }
     
