@@ -21,6 +21,7 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -31,6 +32,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import neuralnetwork.NeuralNetwork;
@@ -57,12 +59,24 @@ public class LyricNN extends Application {
     double[][] task;
     double[][] answers;
     TextArea tAr;
-    String pathWords;
+    private String pathWords;
     boolean cbLissInst = true;
+    private String filePath;
+    private static String savePath;
+    private static TextField tfTasks;
+    private static TextField tfAnswers;
     @Override
     public void start(Stage primaryStage) {
         HBox hbSlova = new HBox(5);
         HBox hbNomery = new HBox(5);
+        
+        HBox hbLoadSave = new HBox(5);
+        Button save = new Button("Зберегти");
+        Button load = new Button("Завантажити");
+        TabPane tp = new TabPane();
+        VBox vbTAnl = new VBox(5);
+        HBox hbButPan = new HBox(5);
+        
         cbMass = new ComboBox[10];
         EventHandler<ActionEvent> podij = (ActionEvent aEv) -> {
             //ComboBox<String> cb = (ComboBox<String>)aEv.getSource();
@@ -70,7 +84,6 @@ public class LyricNN extends Application {
             updateNumbers();
         };
         
-        TabPane tp = new TabPane();
         Tab wordSelect = new Tab("Відбір слів");
             wordSelect.setClosable(false);
 
@@ -81,24 +94,6 @@ public class LyricNN extends Application {
             TextArea taSlova = new TextArea();
             taSlova.setWrapText(true);
             knpZavant.setOnAction(pdj ->{
-                //testLbl.setText(taSlova.getText().replaceAll("\n", ","));
-                /*FileChooser fch = new FileChooser();
-                fch.setInitialDirectory(new File("C:/"));
-                fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
-                        new FileChooser.ExtensionFilter("Всі файли", "*.*"));
-                File fl = fch.showOpenDialog(primaryStage);
-                if(fl==null)return;*/
-                //System.out.println(""+fl.getAbsolutePath());
-                //words = Arrays.asList(loadWordsFromFile(fl.getAbsolutePath()));
-                /*for (int i = 0; i < 10; i++) {
-                    cbMass[i] = new ComboBox<>();
-                    cbMass[i].getItems()
-                            .addAll(words);
-                    cbMass[i].getSelectionModel().select(0);
-                    cbMass[i].setOnAction(podij);
-                    hbSlova.getChildren().add(cbMass[i]);//потім перемістити цей пункт в нову кнопку з відфільтрованими словами
-                }*/
-                //taSlova.appendText(loadWordsFromFile(fl.getAbsolutePath()));
                 loadWindow(primaryStage, taSlova);
             });
             
@@ -113,12 +108,11 @@ public class LyricNN extends Application {
         wordSelect.setContent(root1);
         
         //------- 2 створення--------------------------------------------------------------------------------------------------------------
+
         
         Tab textAnalyze = new Tab("Анализ текста");
         textAnalyze.setClosable(false);
         
-            VBox vbTAnl = new VBox(5);
-            HBox hbButPan = new HBox(5);
             
             TextArea taTAnl = new TextArea();
             taTAnl.setWrapText(true);
@@ -132,10 +126,6 @@ public class LyricNN extends Application {
             Button knpMemoryWords = new Button("Создать");
             knpMemoryWords.setOnAction(pdj ->{
                 smpTskWrd = Arrays.asList(taTAnl.getText().split("\n"));
-                //task = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                //answers = new double[smpTskWrd.size()-10][sortedWords.size()];// ------------------- зробити потім можливість налаштування кількості --------------
-                //checkedWords.forEach(wrd -> System.out.println(wrd));
-                //System.out.println("size - "+checkedWords.size());
             });
             
             Button knpCrTasAnsw = new Button("Создать/дополнить задания/ответы");
@@ -158,8 +148,8 @@ public class LyricNN extends Application {
             
             Button knpZberVFajl = new Button("Сохранить в файл");
             knpZberVFajl.setOnAction(pdj ->{
-                FileChooser fcZb = new FileChooser();
-                File flOsZb = new File("C:/");
+                /*FileChooser fcZb = new FileChooser();
+                File flOsZb = new File(savePath);
                 //if(!flOsZb.exists()&&!flOsZb.isDirectory())flOsZb = new File("C:/");
                 fcZb.setInitialDirectory(flOsZb);
                 fcZb.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
@@ -177,7 +167,37 @@ public class LyricNN extends Application {
                 } catch (Exception e) {
                     System.out.println("Not mathc count");
                 }
+                //File fl2 = fcZb.showSaveDialog(primaryStage);
+                fcZb.setInitialDirectory(fl.getParentFile());
                 File fl2 = fcZb.showSaveDialog(primaryStage);
+                if(fl2==null)return;
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl2,true))){
+                    for (double[] ds : answers) {
+                        for (double d : ds) {
+                            bw.write(d+",");
+                        }
+                        bw.newLine();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Not mathc count");
+                }*/
+                //File flOsZb = new File(savePath);
+                File fl = new File(savePath+tfTasks.getText()+".txt");
+                //flOsZb = fl;
+                if(fl==null)return;
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl,true))){
+                    for (double[] ds : task) {
+                        for (double d : ds) {
+                            bw.write(d+",");
+                        }
+                        bw.newLine();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Not mathc count");
+                }
+                //File fl2 = fcZb.showSaveDialog(primaryStage);
+                //fcZb.setInitialDirectory(fl.getParentFile());
+                File fl2 = new File(savePath+tfAnswers.getText()+".txt");
                 if(fl2==null)return;
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(fl2,true))){
                     for (double[] ds : answers) {
@@ -234,7 +254,7 @@ public class LyricNN extends Application {
         
         crNeuNet.setOnAction(pdj ->{
             //nn1 = new NeuralNetwork(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
-            ldb.createNN(ldb.getSortWords().size(), new int[]{ldb.getSortWords().size(),ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
+            ldb.createNN(ldb.getSortWords().size(), new int[]{/*ldb.getSortWords().size(),*/ldb.getSortWords().size(),ldb.getSortWords().size()/*,262,262*/,ldb.getSortWords().size()});
             createCBXS(podij,hbSlova);
         });
         
@@ -264,9 +284,6 @@ public class LyricNN extends Application {
             trainNetwork(ldb.getNN(),lbl);
         });
         
-        HBox hbLoadSave = new HBox(5);
-        Button save = new Button("Зберегти");
-        Button load = new Button("Завантажити");
         
         save.setOnAction(pdj ->{
             FileChooser fcZb = new FileChooser();
@@ -310,7 +327,58 @@ public class LyricNN extends Application {
         Tab tbExec = new Tab("Робота з словами");
         tbExec.setClosable(false);
         tbExec.setContent(root2);
-        tp.getTabs().addAll(wordSelect,textAnalyze,tbExec);
+        
+        Tab tbSett = new Tab("Настройки");
+            
+            VBox vbSett = new VBox(5);
+            vbSett.setPadding(new Insets(10));
+            HBox hbLoadPath = new HBox(5);
+            Button knpLPath = new Button("Директория с текстом");
+            Label lblLPath = new Label("Путь к файлам с текстом");
+            Label lblSavPath = new Label("Сохранять файлы в этом каталоге");
+            knpLPath.setOnAction(pdj ->{
+                DirectoryChooser dc = new DirectoryChooser();
+                dc.setTitle("Оберіть директорію з планшетами");
+                File fl = dc.showDialog(primaryStage);
+                if(fl==null)return;
+
+                filePath = fl.getAbsolutePath();
+                lblLPath.setText(fl.getAbsolutePath());
+            });
+            
+            
+            
+            hbLoadPath.getChildren().addAll(knpLPath,lblLPath);
+            
+            HBox hbSave = new HBox(5);
+            
+            Button knpPathSave = new Button("Выберите папку для сохранения");
+            
+            knpPathSave.setOnAction(pdj -> {
+                DirectoryChooser dc = new DirectoryChooser();
+                dc.setTitle("Оберіть директорію з планшетами");
+                File fl = dc.showDialog(primaryStage);
+                if(fl==null)return;
+
+                savePath = fl.getAbsolutePath();
+                lblSavPath.setText(fl.getAbsolutePath());
+            });
+            
+            HBox hbTasks = new HBox(5);
+            HBox hbAnsw = new HBox(5);
+            tfTasks = new TextField("Tasks");
+            tfAnswers = new TextField("Answers");
+            hbTasks.getChildren().addAll(new Label("файл заданий"),tfTasks);
+            hbAnsw.getChildren().addAll(new Label("файл ответов"),tfAnswers);
+            
+            
+            
+            
+            hbSave.getChildren().addAll(knpPathSave,lblSavPath);
+            vbSett.getChildren().addAll(hbLoadPath,hbSave,hbTasks,hbAnsw);
+        tbSett.setContent(vbSett);
+        
+        tp.getTabs().addAll(tbSett,wordSelect,textAnalyze,tbExec);
         Scene scene = new Scene(tp, 1000, 450);
         
         
@@ -336,7 +404,7 @@ public class LyricNN extends Application {
      */
     public void loadWindow(Stage priSt, TextArea ta) {
         FileChooser fch = new FileChooser();
-        fch.setInitialDirectory(new File("C:/"));
+        fch.setInitialDirectory(new File(filePath));
         fch.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Текст", "*.txt"),
                 new FileChooser.ExtensionFilter("Всі файли", "*.*"));
         File fl = fch.showOpenDialog(priSt);
@@ -375,13 +443,15 @@ public class LyricNN extends Application {
      * @param lbl мітка яка буде відображати хід тренування
      */
     public static void trainNetwork(NeuralNetwork nn, Label lbl){
-        double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\001.txt", ldb.getSortWords().size());
-        double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\002.txt", ldb.getSortWords().size());
+        
+        //double taskSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\001.txt", ldb.getSortWords().size());
+        //double answerSet[][] = loadArrayFromFile("E:\\Users\\Den\\Desktop\\002.txt", ldb.getSortWords().size());
+        System.out.println(savePath+tfTasks.getText()+".txt");
+        double taskSet[][] = loadArrayFromFile(savePath+"\\"+tfTasks.getText()+".txt", ldb.getSortWords().size());
+        double answerSet[][] = loadArrayFromFile(savePath+"\\"+tfAnswers.getText()+".txt", ldb.getSortWords().size());
         lbl.textProperty().bind(nn.messageProperty());
-        nn.setParameters(taskSet, answerSet, 0.1, 0.1);
-        System.out.println("done 2");
+        nn.setParameters(taskSet, answerSet, 0.4, 0.4);
         new Thread(nn).start();
-        System.out.println("done 3");
     }
     
     /**
@@ -454,10 +524,8 @@ public class LyricNN extends Application {
         }
         double[] nums2 = new double[ldb.getSortWords().size()];
         double x = 1000.0;
-        //for (int i = 0; i < 10; i++) {
         for (int i=9;i>=0;i--) {
-            nums2[nums[i]]/*+*/=x/1000.0;//1.0;
-            System.out.println("check nums - "+nums[i]+" - "+nums2[nums[i]]+" - "+x);
+            if(nums2[nums[i]]==0.0)nums2[nums[i]]=x/1000.0;// тестовий режим ________________________++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             x=x-75.0;
         }
         fillTextAnswer(getAnswer(nums2));

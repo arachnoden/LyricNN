@@ -22,7 +22,7 @@ public class LyricDB implements Serializable{
     }
     
     public void createNN(int sens, int[] networkMap){
-        nn = new NeuralNetwork(sens, networkMap);
+        nn = new NeuralNetwork(sens, networkMap, true);
     }
     public NeuralNetwork getNN(){
         return nn;
